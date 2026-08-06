@@ -6,6 +6,7 @@ import { Lock, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { setAuthCookie } from '../actions';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -29,6 +30,10 @@ export default function LoginPage() {
       });
 
       if (res.data.success) {
+        // Save the token returned by the backend into a Next.js cookie
+        if (res.data.token) {
+          await setAuthCookie(res.data.token);
+        }
         toast.success('Login successful!');
         router.push('/scanner'); // Redirect to scanner as requested
         router.refresh();

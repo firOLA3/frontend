@@ -22,12 +22,16 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor for auth (if needed later)
+// Request interceptor for auth
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add auth token here if needed
-    // const token = getToken();
-    // if (token) config.headers.Authorization = `Bearer ${token}`;
+    // Read the auth_token cookie that Next.js saved and attach it to the header
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(new RegExp('(^| )auth_token=([^;]+)'));
+      if (match) {
+        config.headers.Authorization = `Bearer ${match[2]}`;
+      }
+    }
     return config;
   },
   (error) => Promise.reject(error)
