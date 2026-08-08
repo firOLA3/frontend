@@ -30,6 +30,7 @@ export interface ParticipantResponse {
   success: boolean;
   participant: Participant;
   message?: string;
+  emailError?: string;
 }
 
 export interface VerifyResponse {

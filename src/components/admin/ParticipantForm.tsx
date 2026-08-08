@@ -58,8 +58,12 @@ export function ParticipantForm({ isOpen, onClose, onSuccess, initialData, mode 
         await participantsApi.update(initialData._id, data as UpdateParticipantData);
         toast.success('Participant updated successfully');
       } else {
-        await participantsApi.create(data as CreateParticipantData);
-        toast.success('Participant created successfully');
+        const response = await participantsApi.create(data as CreateParticipantData);
+        if (response.emailError) {
+          toast.error(`Participant created, but email failed: ${response.emailError}`, { duration: 5000 });
+        } else {
+          toast.success('Participant created successfully');
+        }
       }
       onSuccess();
       onClose();
