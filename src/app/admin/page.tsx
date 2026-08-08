@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Download, Upload, RefreshCw } from 'lucide-react';
+import { Plus, Download, Upload, RefreshCw, Camera } from 'lucide-react';
+import Link from 'next/link';
 import { StatsCards } from '@/components/admin/StatsCards';
 import { ParticipantTable } from '@/components/admin/ParticipantTable';
 import { ParticipantForm } from '@/components/admin/ParticipantForm';
@@ -45,7 +46,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 h-16">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 sm:h-16">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +59,13 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href="/scanner">
+                <Button variant="outline" size="sm">
+                  <Camera className="h-4 w-4" />
+                  <span className="hidden sm:inline">Scanner</span>
+                </Button>
+              </Link>
               <Button variant="outline" onClick={handleRefresh} size="sm">
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">Refresh</span>

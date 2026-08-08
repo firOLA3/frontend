@@ -200,7 +200,7 @@ export function ParticipantTable({ onEdit, onViewQR }: ParticipantTableProps) {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <select
             value={isActiveFilter}
             onChange={(e) => {
@@ -402,8 +402,8 @@ export function ParticipantTable({ onEdit, onViewQR }: ParticipantTableProps) {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:justify-between">
+          <p className="text-sm text-gray-500 text-center sm:text-left">
             Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
             {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of{' '}
             {pagination.totalItems} participants

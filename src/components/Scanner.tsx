@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Camera, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Camera, X, CheckCircle, AlertCircle, Loader2, SwitchCamera } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { participantsApi } from '@/lib/api';
@@ -25,8 +25,7 @@ interface ScannerProps {
 export function Scanner({ onScan, isOpen = true, onClose, scannedBy }: ScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
-  const [cameras, setCameras] = useState<CameraDevice[]>([]);
-  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [lastResult, setLastResult] = useState<VerifyResponse | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [manualCode, setManualCode] = useState('');
@@ -35,30 +34,15 @@ export function Scanner({ onScan, isOpen = true, onClose, scannedBy }: ScannerPr
   const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize cameras
+  // Initialize permissions
   useEffect(() => {
-    const getCameras = async () => {
-      try {
-        const devices = await Html5Qrcode.getCameras();
-        if (devices && devices.length > 0) {
-          setCameras(devices);
-          setSelectedCameraId(devices[0].id);
-          setHasPermission(true);
-        }
-      } catch (error) {
-        console.error('Camera access error:', error);
-        setHasPermission(false);
-      }
-    };
-
     if (isOpen) {
-      getCameras();
+      setHasPermission(true);
     }
   }, [isOpen]);
 
-  // Start scanning
   useEffect(() => {
-    if (!isOpen || !hasPermission || !selectedCameraId || isScanning) return;
+    if (!isOpen || !hasPermission || isScanning) return;
 
     const startScanner = async () => {
       if (!scannerContainerRef.current) return;
@@ -67,7 +51,7 @@ export function Scanner({ onScan, isOpen = true, onClose, scannedBy }: ScannerPr
 
       try {
         await html5QrcodeRef.current.start(
-          selectedCameraId,
+          { facingMode },
           {
             fps: 10,
             qrbox: (viewfinderWidth, viewfinderHeight) => {
@@ -76,7 +60,6 @@ export function Scanner({ onScan, isOpen = true, onClose, scannedBy }: ScannerPr
               const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
               return { width: qrboxSize, height: qrboxSize };
             },
-            aspectRatio: 1.0,
           },
           (decodedText) => {
             handleScanResult(decodedText);
@@ -100,7 +83,7 @@ export function Scanner({ onScan, isOpen = true, onClose, scannedBy }: ScannerPr
         setIsScanning(false);
       }
     };
-  }, [isOpen, hasPermission, selectedCameraId, isScanning]);
+  }, [isOpen, hasPermission, facingMode, isScanning]);
 
   const handleScanResult = useCallback(async (decodedText: string) => {
     if (isVerifying) return;
@@ -133,12 +116,12 @@ export function Scanner({ onScan, isOpen = true, onClose, scannedBy }: ScannerPr
       setIsVerifying(false);
       // Restart scanner after 2 seconds
       setTimeout(() => {
-        if (isOpen && hasPermission && selectedCameraId) {
+        if (isOpen && hasPermission && facingMode) {
           // Scanner will restart via useEffect
         }
       }, 2000);
     }
-  }, [isVerifying, isScanning, isOpen, hasPermission, selectedCameraId, onScan]);
+  }, [isVerifying, isScanning, isOpen, hasPermission, facingMode, onScan]);
 
   const handleManualVerify = async () => {
     if (!manualCode.trim() || isVerifying) return;
@@ -236,22 +219,26 @@ export function Scanner({ onScan, isOpen = true, onClose, scannedBy }: ScannerPr
             </div>
           )}
 
-          {cameras.length > 1 && (
-            <div className="mt-3">
-              <label className="label">Switch Camera</label>
-              <select
-                value={selectedCameraId}
-                onChange={(e) => setSelectedCameraId(e.target.value)}
-                className="input"
-              >
-                {cameras.map((camera) => (
-                  <option key={camera.id} value={camera.id}>
-                    {camera.label || `Camera ${camera.id.slice(0, 8)}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="mt-3">
+            <Button
+              variant="outline"
+              className="w-full justify-center"
+              onClick={() => {
+                // Stop current scanner before switching
+                if (html5QrcodeRef.current && isScanning) {
+                  html5QrcodeRef.current.stop().then(() => {
+                    setIsScanning(false);
+                    setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+                  }).catch(console.error);
+                } else {
+                  setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+                }
+              }}
+            >
+              <SwitchCamera className="h-4 w-4 mr-2" />
+              Switch to {facingMode === 'environment' ? 'Front Camera' : 'Back Camera'}
+            </Button>
+          </div>
         </div>
 
         {/* Manual Entry */}
